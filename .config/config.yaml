@@ -1,0 +1,119 @@
+# =========================
+# Email Security Gateway - Configuration File
+# =========================
+
+# General Settings
+app:
+  name: EmailSecurityGateway
+  version: 1.0.0
+  log_level: INFO  # DEBUG, INFO, WARNING, ERROR
+  timezone: Asia/Kolkata
+
+# Email Ingestion
+ingestion:
+  accepted_extensions: [".eml"]
+  max_file_size_mb: 25
+  storage_path: "./emails/"
+  quarantine_path: "./quarantine/"
+
+# Parsing & Validation
+parsing:
+  enable_header_parsing: true
+  enable_body_extraction: true
+  extract_attachments: true
+
+validation:
+  spf: true
+  dkim: true
+  dmarc: true
+  dns_timeout: 3
+
+# Malware & Threat Detection
+threat_detection:
+  enabled: true
+  antivirus_engine: "ClamAV"
+  use_sandbox: false
+  yara_rules_path: "./rules/yara/"
+  score_threshold: 70
+  # virustotal_api_key: c915ec7a617555a8d028cd4649e670c92d96895a6ecf585b09fb3e0bd28bd309
+  # hybrid_analysis_api_key: 4sg8y5m8d077ed1a715rook856a4169bqzor424dd98f12ffsa11m3nm2ad42d23
+
+# Attachment & Policy Enforcement
+attachments:
+  allowlist_extensions: [".pdf", ".docx", ".xlsx"]
+  blocklist_extensions: [".exe", ".js", ".vbs", ".scr"]
+  max_attachment_size_mb: 10
+  pdf_fallback: true
+
+policy:
+  default_action: "notify"  # Options: allow, block, notify, quarantine
+  banner_injection: true
+  notify_recipient: true
+  notify_admin: true
+  admin_email: "admin@yourdomain.com"
+
+# Routing & Quarantine
+routing:
+  rule_engine_enabled: true
+  quarantine_enabled: true
+  quarantine_retention_days: 14
+
+# Downstream Mail Server (Your Postfix Server)
+downstream_mta:
+  host: "127.0.0.1"  # <-- IMPORTANT: Change this to the PRIVATE IP of your Postfix VM
+  port: 2526
+
+
+# Logging & Reporting
+logging:
+  log_to_file: true
+  log_file_path: "./logs/app.log"
+  max_log_size_mb: 5
+  backup_count: 3
+
+reporting:
+  generate_daily_summary: true
+  report_format: ["pdf", "csv"]
+  save_reports_to: "./reports/"
+  dmarc_dashboard_enabled: true
+
+# API Settings (if using FastAPI or similar)
+api:
+  host: "127.0.0.1"
+  port: 8000
+  enable_auth: false
+  rate_limit_per_minute: 60
+
+# SMTP Listener (Embedded)
+smtp_listener:
+  enabled: true
+  host: "127.0.0.1"
+  port: 2525
+  max_size_mb: 25
+  allowed_ips: []
+
+# Security & Auth
+security:
+  jwt_secret: "change-me-please"
+  access_expires_minutes: 30
+  refresh_expires_days: 7
+  users:
+    - username: admin
+      password_sha256: 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9  # admin123
+      roles: [admin, analyst, viewer]
+    - username: analyst
+      password_sha256: 20249749412d73a3f5799f6f1dcf910e7b4aa3ce4de133b1f8a63c044792a4e9  # analyst123
+      roles: [analyst, viewer]
+    - username: viewer
+      password_sha256: 65375049b9e4d7cad6c9ba286fdeb9394b28135a3e84136404cfccfdcc438894  # viewer123
+      roles: [viewer]
+
+# Gmail Plugin
+gmail_plugin:
+  enable_inline_warnings: true
+  phishing_report_enabled: true
+
+# Debug / Development Mode
+debug:
+  simulate_incoming_email: false
+  use_mock_dns: false

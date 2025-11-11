@@ -1,0 +1,778 @@
+openapi: 3.0.3
+info:
+  title: EmailSecurity API
+  version: "1.1"
+  description: OpenAPI spec for EmailSecurity backend. Import this into Postman.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local dev
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /auth/login:
+    post:
+      summary: Login and receive tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/refresh:
+    post:
+      summary: Exchange refresh for new access
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Invalid or revoked refresh token
+
+  /auth/me:
+    get:
+      summary: Current user profile
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      sub:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: string
+
+  /auth/logout:
+    post:
+      summary: Revoke refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Revoked
+
+  /sync:
+    post:
+      summary: Refresh caches and get compact payload
+      responses:
+        '200':
+          description: Compact dashboard payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPayload'
+
+  /dashboard/metrics:
+    get:
+      summary: Dashboard metrics
+      responses:
+        '200':
+          description: Counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metrics'
+
+  /dashboard/graph:
+    get:
+      summary: Timeseries graph data
+      parameters:
+        - in: query
+          name: series
+          schema:
+            type: string
+            enum: [total, malicious, both]
+          required: false
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date-time
+          required: false
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date-time
+          required: false
+      responses:
+        '200':
+          description: Graph time buckets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphResponse'
+
+  /dashboard/recent:
+    get:
+      summary: Recent analyzed emails
+      responses:
+        '200':
+          description: Recent items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecentEmail'
+
+  /emails:
+    get:
+      summary: List emails
+      parameters:
+        - in: query
+          name: folder
+          schema:
+            type: string
+            enum: [quarantine, blocked, all]
+          required: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          required: false
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+            minimum: 1
+          required: false
+        - in: query
+          name: sort
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date-time
+          required: false
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date-time
+          required: false
+      responses:
+        '200':
+          description: Paged list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailsPage'
+
+  /emails/{id}:
+    get:
+      summary: Email detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailDetail'
+        '404':
+          description: Not found
+    delete:
+      summary: Delete email (Analyst+)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+
+  /emails/{id}/forward:
+    post:
+      summary: Forward email (Analyst+)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Forwarded placeholder
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                    example: forwarded
+
+  /emails/{id}/attachments:
+    get:
+      summary: List attachments metadata
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attachments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttachmentMeta'
+
+  /emails/{id}/attachments/{attId}:
+    get:
+      summary: Download attachment (placeholder)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: attId
+          required: true
+          schema:
+            type: string
+      responses:
+        '404':
+          description: Content not stored
+
+  /emails/clear:
+    post:
+      summary: Bulk clear by folder (Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClearBody'
+      responses:
+        '200':
+          description: Deleted count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+
+  /policies:
+    get:
+      summary: List policies
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PolicySummary'
+
+  /policy:
+    post:
+      summary: Create policy (Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+
+  /policy/{id}:
+    get:
+      summary: Get policy
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Policy content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDetail'
+        '404':
+          description: Not found
+    put:
+      summary: Update policy (Admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete policy (Admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+
+  /policy/{id}/activate:
+    patch:
+      summary: Activate policy (Admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  active:
+                    type: boolean
+
+  /settings:
+    get:
+      summary: Get settings
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+
+  /settings/alerts/blocked:
+    put:
+      summary: Set alerts for blocked
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToggleBody'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+
+  /settings/notifications/quarantine:
+    put:
+      summary: Set notifications for quarantine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToggleBody'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+
+  /settings/change-password:
+    post:
+      summary: Change password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordBody'
+      responses:
+        '200':
+          description: OK
+
+  /settings/spam-detection-level:
+    get:
+      summary: Placeholder endpoint
+      responses:
+        '200':
+          description: Coming soon
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Coming Soon
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+    LogoutRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        user:
+          type: object
+          properties:
+            username:
+              type: string
+            roles:
+              type: array
+              items:
+                type: string
+        roles:
+          type: array
+          items:
+            type: string
+        expires_in:
+          type: integer
+          example: 3600
+    RefreshResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        expires_in:
+          type: integer
+          example: 3600
+    Metrics:
+      type: object
+      properties:
+        total:
+          type: integer
+        quarantined:
+          type: integer
+        blocked:
+          type: integer
+        passed:
+          type: integer
+    GraphResponse:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+        total:
+          type: array
+          items:
+            type: integer
+        malicious:
+          type: array
+          items:
+            type: integer
+    RecentEmail:
+      type: object
+      properties:
+        id:
+          type: string
+        sender:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+        time:
+          type: string
+          format: date-time
+    EmailItem:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        from:
+          type: string
+        subject:
+          type: string
+        final_decision:
+          type: string
+        threat_score:
+          type: integer
+          nullable: true
+    EmailsPage:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailItem'
+    EmailDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: object
+          properties:
+            subject:
+              type: string
+            from:
+              type: string
+            date:
+              type: string
+            path:
+              type: string
+        auth:
+          type: object
+        attachments:
+          type: array
+          items:
+            type: object
+        final_decision:
+          type: string
+        reasons:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+    AttachmentMeta:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        is_malicious:
+          type: boolean
+    ClearBody:
+      type: object
+      required: [folder]
+      properties:
+        folder:
+          type: string
+          enum: [quarantine, blocked]
+    PolicySummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        last_modified:
+          type: string
+          format: date-time
+    PolicyCreate:
+      type: object
+      required: [content]
+      properties:
+        name:
+          type: string
+          nullable: true
+        content:
+          type: string
+    PolicyDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        active:
+          type: boolean
+        content:
+          type: string
+    Settings:
+      type: object
+      properties:
+        alerts_blocked:
+          type: boolean
+        notifications_quarantine:
+          type: boolean
+    ToggleBody:
+      type: object
+      required: [value]
+      properties:
+        value:
+          type: boolean
+    ChangePasswordBody:
+      type: object
+      required: [current_password, new_password, confirm_new_password]
+      properties:
+        current_password:
+          type: string
+        new_password:
+          type: string
+        confirm_new_password:
+          type: string
+    SyncPayload:
+      type: object
+      properties:
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicySummary'
+        recent:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailItem'
+

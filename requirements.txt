@@ -1,0 +1,44 @@
+# EmailSecurity Gateway - Python Dependencies
+# Updated for Python 3.13 compatibility (2025-11-07)
+# Note: If using Python 3.13, ensure you have the latest pip: python -m pip install --upgrade pip
+
+# Core Dependencies
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+websockets>=13.0  # For WebSocket support
+python-multipart>=0.0.12
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+pydantic>=2.10.0  # Updated for Python 3.13 compatibility
+SQLAlchemy>=2.0.30
+
+# Email Processing
+mail-parser>=3.15.0
+dnspython>=2.7.0
+pyspf>=2.0.14
+dkimpy>=1.1.8
+authheaders>=0.16.0
+aiosmtpd>=1.4.6
+beautifulsoup4>=4.12.3
+
+# Security and Analysis
+pyclamd>=0.4.0
+yara-python>=4.5.0  # Optional - comment out if YARA is not available
+requests>=2.32.0
+python-magic>=0.4.27
+virustotal-api>=1.1.11
+
+# Document Processing
+PyPDF2>=3.0.1
+reportlab>=4.2.0
+fpdf>=1.7.2
+pdfkit>=1.0.0
+
+# Configuration and Scheduling
+pyyaml>=6.0.1
+schedule>=1.2.1
+APScheduler>=3.10.4
+
+# Web Framework and Authentication
+jinja2>=3.1.4
+# Note: fastapi-login and fastapi-jwt-auth removed - we use python-jose directly (see python-jose above)

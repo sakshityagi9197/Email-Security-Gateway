@@ -1,0 +1,11 @@
+policy:
+  name: Test Policy
+  version: '1.0'
+  description: This is Test policy.
+rules:
+  - id: '1'
+    name: test rule
+    category: test
+    action: pass
+    reasoning: pass
+    conditions: {}

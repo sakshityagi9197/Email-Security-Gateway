@@ -1,0 +1,65 @@
+policy:
+  name: "Gmail Security Policy"
+  version: "2"
+  description: "Simple and effective email security rules for Gmail protection"
+rules:
+  - id: "block_dangerous_files"
+    name: "Block Dangerous File Types"
+    category: "File Security"
+    conditions: {"attachment_extension":["exe","bat","cmd","com","jpg","pif","scr","vbs","js","jar","msi","ps1"]}
+    action: "block"
+    reasoning: "These files can contain viruses or malware"
+  - id: "block_suspicious_files"
+    name: "Block Suspicious File Types"
+    category: "File Security"
+    conditions: {"attachment_extension":["zip","rar","7z","tar","gz","docm","xlsm","pptm"]}
+    action: "quarantine"
+    reasoning: "These files might contain hidden malware"
+  - id: "check_email_auth"
+    name: "Check Email Authentication"
+    category: "Email Authentication"
+    conditions: {"spf":"fail","dkim":"fail","dmarc":"fail"}
+    action: "reject"
+    reasoning: "Failed authentication means email might be fake"
+  - id: "block_suspicious_words"
+    name: "Block Suspicious Words"
+    category: "Content Security"
+    conditions: {"subject_contains":["urgent","account suspended","verify now","click here","free money","lottery winner"],"body_contains":["password","credit card","social security","bank account"]}
+    action: "quarantine"
+    reasoning: "Common phishing keywords"
+  - id: "block_suspicious_links"
+    name: "Block Suspicious Links"
+    category: "Link Security"
+    conditions: {"links_contain":["bit.ly","tinyurl","goo.gl","suspicious-domain.com"]}
+    action: "quarantine"
+    reasoning: "Shortened links might be dangerous"
+  - id: "block_high_threat"
+    name: "Block High Threat Emails"
+    category: "Threat Detection"
+    conditions: {"threat_score_greater_than":90}
+    action: "block"
+    reasoning: "Very high threat score indicates danger"
+  - id: "quarantine_medium_threat"
+    name: "Quarantine Medium Threat Emails"
+    category: "Threat Detection"
+    conditions: {"threat_score_greater_than":60}
+    action: "quarantine"
+    reasoning: "Medium threat score needs review"
+  - id: "block_personal_info"
+    name: "Block Personal Information"
+    category: "Privacy Protection"
+    conditions: {"contains_patterns":["\\b\\d{3}-\\d{2}-\\d{4}\\b","\\b\\d{4}-\\d{4}-\\d{4}-\\d{4}\\b"]}
+    action: "block"
+    reasoning: "Contains social security or credit card numbers"
+  - id: "block_suspicious_attachments"
+    name: "Block Suspicious Attachments"
+    category: "Attachment Security"
+    conditions: {"attachment_count_greater_than":5,"attachment_size_greater_than_mb":10}
+    action: "quarantine"
+    reasoning: "Too many or too large attachments"
+  - id: "allow_safe_emails"
+    name: "Allow Safe Emails"
+    category: "Safe Senders"
+    conditions: {"sender_in_whitelist":true,"threat_score_less_than":10}
+    action: "allow"
+    reasoning: "Known safe senders with low threat score"
