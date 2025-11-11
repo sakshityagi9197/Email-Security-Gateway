@@ -211,17 +211,25 @@ For detailed installation instructions, prerequisites, configuration, and troubl
 
 ## 📸 Screenshots
 
-### Dashboard
-Comprehensive metrics showing email volume, threat distribution, and routing decisions.
+### Login Portal
+Secure authentication gateway to access the email security platform.
 
-### Email Detail View
-Deep dive into individual emails with full headers, threat scores, and analysis results.
+![Login Portal](src/SignIn.png)
+
+### Dashboard
+Comprehensive metrics showing total incoming emails, blocked emails, quarantined emails, and passed emails. View real-time statistics and recent email activity at a glance.
+
+![Dashboard](src/Dashboard.png)
 
 ### Policy Management
-Create and manage custom security policies with YAML-based configuration.
+Create and manage custom security policies with YAML-based configuration. Apply inbound and outbound rules to control email gateway behavior.
 
-### Quarantine Management
-Review, release, or delete quarantined emails with a single click.
+![Policy Management](src/Policy.png)
+
+### Emails Section
+View and manage blocked and quarantined emails. Review suspicious emails, release them to recipients, or permanently delete threats.
+
+![Emails Section](src/Emails.png)
 
 ---
 
